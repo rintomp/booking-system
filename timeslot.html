@@ -1,7 +1,8 @@
-
 <!DOCTYPE html>
 <html>
-<head><title>Select Time Slot</title></head>
+<head>
+  <title>Select Time Slot</title>
+</head>
 <body>
   <h2>Select a Time Slot</h2>
   <form>
@@ -9,22 +10,30 @@
     <br><br>
     <button type="button" onclick="submitSlot()">Submit</button>
   </form>
+
   <script>
-    const formData = JSON.parse(localStorage.getItem("formData"));
+    // Your Google Apps Script Web App URL
     const endpoint = "https://script.google.com/macros/s/AKfycbyQ8qPNLpFiETPh52NuMtLWkScV0ugHTVL5wFGy4WtR6F9hy6LrLUM14BpqP3dhy3sT/exec";
+
+    // Retrieve saved form data
+    const formData = JSON.parse(localStorage.getItem("formData"));
+
     const slotList = document.getElementById("timeSlot");
 
+    // Generate all 15-min interval time slots from 10:00 AM to 1:30 PM
     const allSlots = [];
     for (let hour = 10; hour <= 13; hour++) {
       for (let min = 0; min < 60; min += 15) {
         if (hour === 13 && min > 30) break;
-        let h = hour < 10 ? "0" + hour : hour;
+        const displayHour = hour > 12 ? hour - 12 : hour;
+        const ampm = hour < 12 ? "AM" : "PM";
         let m = min === 0 ? "00" : min;
-        let time = `${h}:${m} ${hour < 12 ? "AM" : "PM"}`;
+        const time = `${displayHour}:${m} ${ampm}`;
         allSlots.push(time);
       }
     }
 
+    // Fetch booked slots and disable them in the dropdown
     fetch(endpoint)
       .then(res => res.json())
       .then(booked => {
@@ -38,10 +47,18 @@
           }
           slotList.appendChild(option);
         });
+      })
+      .catch(err => {
+        alert("Error loading time slots: " + err);
       });
 
+    // Submit selected slot and save booking
     function submitSlot() {
       const selectedTime = document.getElementById("timeSlot").value;
+      if (!selectedTime) {
+        alert("Please select a time slot.");
+        return;
+      }
       formData.timeSlot = selectedTime;
 
       fetch(endpoint, {
@@ -50,8 +67,14 @@
         headers: { "Content-Type": "application/json" }
       })
       .then(res => res.text())
-      .then(() => alert("Submitted!"))
-      .catch(err => alert("Error: " + err));
+      .then(() => {
+        alert("Booking submitted successfully!");
+        localStorage.removeItem("formData");
+        window.location.href = "index.html"; // Redirect back or to a thank you page
+      })
+      .catch(err => {
+        alert("Error submitting booking: " + err);
+      });
     }
   </script>
 </body>
