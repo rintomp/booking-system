@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Select Time Slot</title></head>
+<body>
+  <h2>Select a Time Slot</h2>
+  <form>
+    <select id="timeSlot"></select>
+    <br><br>
+    <button type="button" onclick="submitSlot()">Submit</button>
+  </form>
+  <script>
+    const formData = JSON.parse(localStorage.getItem("formData"));
+    const endpoint = "https://script.google.com/macros/s/AKfycbyQ8qPNLpFiETPh52NuMtLWkScV0ugHTVL5wFGy4WtR6F9hy6LrLUM14BpqP3dhy3sT/exec";
+    const slotList = document.getElementById("timeSlot");
+
+    const allSlots = [];
+    for (let hour = 10; hour <= 13; hour++) {
+      for (let min = 0; min < 60; min += 15) {
+        if (hour === 13 && min > 30) break;
+        let h = hour < 10 ? "0" + hour : hour;
+        let m = min === 0 ? "00" : min;
+        let time = `${h}:${m} ${hour < 12 ? "AM" : "PM"}`;
+        allSlots.push(time);
+      }
+    }
+
+    fetch(endpoint)
+      .then(res => res.json())
+      .then(booked => {
+        allSlots.forEach(slot => {
+          const option = document.createElement("option");
+          option.value = slot;
+          option.textContent = slot;
+          if (booked.includes(slot)) {
+            option.disabled = true;
+            option.textContent += " (Booked)";
+          }
+          slotList.appendChild(option);
+        });
+      });
+
+    function submitSlot() {
+      const selectedTime = document.getElementById("timeSlot").value;
+      formData.timeSlot = selectedTime;
+
+      fetch(endpoint, {
+        method: "POST",
+        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(res => res.text())
+      .then(() => alert("Submitted!"))
+      .catch(err => alert("Error: " + err));
+    }
+  </script>
+</body>
+</html>
