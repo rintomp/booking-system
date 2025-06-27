@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Admin Reset</title></head>
+<body>
+  <h2>Admin Control</h2>
+  <button onclick="resetData()">Clear All Bookings</button>
+  <p id="result"></p>
+  <script>
+    const password = prompt("Enter Admin Password:");
+    if (password !== "admin123") {
+      alert("Unauthorized");
+      window.location.href = "index.html";
+    }
+
+    function resetData() {
+      fetch("https://script.google.com/macros/s/AKfycbyQ8qPNLpFiETPh52NuMtLWkScV0ugHTVL5wFGy4WtR6F9hy6LrLUM14BpqP3dhy3sT/exec")
+        .then(res => res.text())
+        .then(data => {
+          document.getElementById("result").innerText = data;
+        })
+        .catch(err => alert("Error: " + err));
+    }
+  </script>
+</body>
+</html>
